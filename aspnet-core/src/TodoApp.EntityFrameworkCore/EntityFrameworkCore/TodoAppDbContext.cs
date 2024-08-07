@@ -1,4 +1,5 @@
-﻿using Acme.BookStore.Books;
+﻿using System;
+using Acme.BookStore.Books;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -56,6 +57,9 @@ public class TodoAppDbContext :
     public DbSet<Book> Books { get; set; }
     public DbSet<PuppeteerConfiguration> PuppeteerConfigurations { get; set; }
     public DbSet<TikiCategory> TikiCategories { get; set; }
+    public DbSet<TikiProduct> TikiProducts { get; set; }
+    public DbSet<TikiProductImage> TikiProductImages { get; set; }
+    public DbSet<TikiReview> TikiReviews { get; set; }
 
 
 
@@ -90,23 +94,59 @@ public class TodoAppDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
-         builder.Entity<TodoItem>(b =>
-    {
-        b.ToTable("TodoItems");
-    });
-     builder.Entity<PuppeteerConfiguration>(b =>
-    {
-        b.ToTable("PuppeteerConfigurations");
-    });
-         builder.Entity<TikiCategory>(b =>
-    {
-        b.ToTable("TikiCategories");
-    });
-    builder.Entity<Book>(b =>
-        {
-            b.ToTable("Books");
-            b.ConfigureByConvention(); //auto configure for the base class props
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
+        builder.Entity<TodoItem>(b =>
+   {
+       b.ToTable("TodoItems");
+   });
+
+        builder.Entity<PuppeteerConfiguration>(b =>
+       {
+           b.ToTable("PuppeteerConfigurations");
+       });
+
+        builder.Entity<TikiCategory>(b =>
+   {
+       b.ToTable("TikiCategories");
+       b.ConfigureByConvention(); //auto configure for the base class props
+
+       //    b.Property(x => x.IsActive).HasDefaultValue(true);
+       //    b.Property(x => x.LastModificationTime).HasDefaultValue(DateTime.Now);
+       //    b.Property(x => x.CreationTime).HasDefaultValue(DateTime.Now);
+       //    b.Property(x => x.CreationBy).HasDefaultValue("system");
+       //    b.Property(x => x.LastModificationBy).HasDefaultValue("system");
+       //    b.Property(x => x.Url).IsRequired().HasMaxLength(500);
+
+       b.ConfigureByConvention(); //auto configure for the base class props
+
+   });
+        builder.Entity<TikiProduct>(b =>
+   {
+       b.ToTable("TikiProducts");
+    //    b.ConfigureByConvention(); //auto configure for the base class props
+
+
+   });
+
+        builder.Entity<TikiProductImage>(b =>
+{
+    b.ToTable("TikiProductImages");
+    b.ConfigureByConvention(); //auto configure for the base class props
+
+
+});
+        builder.Entity<TikiReview>(b =>
+{
+    b.ToTable("TikiReviews");
+    b.ConfigureByConvention(); //auto configure for the base class props
+
+
+});
+
+        builder.Entity<Book>(b =>
+            {
+                b.ToTable("Books");
+                b.ConfigureByConvention(); //auto configure for the base class props
+                b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            });
     }
 }

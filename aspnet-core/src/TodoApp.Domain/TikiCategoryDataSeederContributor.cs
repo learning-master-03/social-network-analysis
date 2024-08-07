@@ -62,7 +62,9 @@ namespace Acme.BookStore
                 Url = url,
                 IsActive = false,
                 LastModificationBy = "system",
-                CreationBy = "system"
+                CreationBy = "system",
+                LastModificationTime = DateTime.UtcNow,
+                CreationTime = DateTime.UtcNow
             }).ToArray();
 
             // Thêm dữ liệu vào cơ sở dữ liệu

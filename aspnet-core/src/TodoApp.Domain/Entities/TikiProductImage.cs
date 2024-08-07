@@ -16,8 +16,8 @@ namespace TodoApp
         public string ImageUrl { get; set; } = "";
         public bool IsActive { get; set; }
         public DateTime? LastModificationTime { get; set; }
-        public required string LastModificationBy { get; set; }
+        public  string LastModificationBy { get; set; }
         public DateTime CreationTime { get; set; }
-        public required string CreationBy { get; set; }
+        public  string CreationBy { get; set; }
     }
 }
