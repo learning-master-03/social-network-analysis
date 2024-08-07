@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "type": "dotnet",
+        "task": "build /Volumes/huynt/huy/studies/source/social-network-analysis/aspnet-core/src/TodoApp.HttpApi.Host/TodoApp.HttpApi.Host.csproj",
+        "file": "/Volumes/huynt/huy/studies/source/social-network-analysis/aspnet-core/src/TodoApp.HttpApi.Host/TodoApp.HttpApi.Host.csproj",
+        "group": "build",
+        "problemMatcher": [],
+        "label": "dotnet"
+      }
+    ]
+  }
+  

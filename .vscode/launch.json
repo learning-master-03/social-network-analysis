@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "ApiDevelopment",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "dotnet",
+        "program": "/Volumes/huynt/huy/studies/source/social-network-analysis/aspnet-core/src/TodoApp.HttpApi.Host/bin/Debug/net8.0/TodoApp.HttpApi.Host.dll",
+        "args": [],
+        "cwd": "/Volumes/huynt/huy/studies/source/social-network-analysis/aspnet-core/src/TodoApp.HttpApi.Host",
+        "stopAtEntry": false,
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        },
+        "sourceFileMap": {
+          "/Views": "${workspaceFolder}/Views"
+        }
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Compound",
+        "configurations": ["ApiDevelopment"]
+      }
+    ]
+  }
+  
+
+  
