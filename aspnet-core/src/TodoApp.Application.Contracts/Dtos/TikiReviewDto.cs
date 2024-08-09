@@ -14,4 +14,6 @@ namespace Acme.BookStore.Books;
 
         public string ReviewContent { get; set; }
         public string CreatedDate { get; set; }
+        public Guid tikiProductId { get; set; }
+
     }

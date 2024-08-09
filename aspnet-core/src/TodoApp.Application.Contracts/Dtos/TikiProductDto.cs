@@ -8,6 +8,7 @@ public class TikiProductDto
 {
     public TikiProductDto()
     {
+        Id = Guid.NewGuid();
         TikiProductImages = new List<TikiProductImageDto>();
         TikiReviews = new List<TikiReviewDto>();
     }

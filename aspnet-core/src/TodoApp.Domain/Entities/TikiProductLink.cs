@@ -1,12 +1,15 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Acme.BookStore.Books;
 using Volo.Abp.Domain.Entities;
 
 namespace TodoApp
+
 {
-    public class TikiProductImage : BasicAggregateRoot<Guid>, ModificationAuditing
+    public class TikiProductLink : BasicAggregateRoot<Guid>, ModificationAuditing
     {
-        public TikiProductImage()
+
+        public TikiProductLink()
         {
             Id = Guid.NewGuid();
             CreationTime = DateTime.UtcNow; // Ensure CreationTime is set
@@ -14,14 +17,14 @@ namespace TodoApp
 
         }
 
-        public int No { get; set; }
+        public string? Url { get; set; }
+        public bool IsGoTo { get; set; }
+        public int Version { get; set; }
+        public Guid? TikiCategoryId { get; set; } // Nullable foreign key
 
-        public string? ImageUrl { get; set; } = "";
-        public bool IsActive { get; set; }
         public DateTime? LastModificationTime { get; set; }
         public string? LastModificationBy { get; set; }= "system";
         public DateTime CreationTime { get; set; }
         public string? CreationBy { get; set; }= "system";
-        public TikiProduct tikiProduct { get; set; }
     }
 }

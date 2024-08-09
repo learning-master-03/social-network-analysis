@@ -9,5 +9,10 @@ namespace TodoApp
     {
         Task CreateAsync();
         Task CrawlProductAsync(Guid categoryId);
+        Task CrawlProductByUrlAsync(string url);
+
+        Task CrawlProductLinkAsync(Guid categoryId);
+        Task CrawlProductReviewAsync(Guid productId);
+
     }
 }

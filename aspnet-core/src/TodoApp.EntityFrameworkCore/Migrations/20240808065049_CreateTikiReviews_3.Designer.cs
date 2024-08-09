@@ -13,8 +13,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace TodoApp.Migrations
 {
     [DbContext(typeof(TodoAppDbContext))]
-    [Migration("20240807181350_CreateTikiReviews_2")]
-    partial class CreateTikiReviews_2
+    [Migration("20240808065049_CreateTikiReviews_3")]
+    partial class CreateTikiReviews_3
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -254,6 +254,9 @@ namespace TodoApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("TikiProducts", (string)null);
@@ -296,6 +299,45 @@ namespace TodoApp.Migrations
                     b.HasIndex("TikiProductId");
 
                     b.ToTable("TikiProductImages", (string)null);
+                });
+
+            modelBuilder.Entity("TodoApp.TikiProductLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreationBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsGoTo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastModificationBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("TikiCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TikiCategoryId");
+
+                    b.ToTable("TikiProductLinks", (string)null);
                 });
 
             modelBuilder.Entity("TodoApp.TikiReview", b =>
@@ -2174,6 +2216,15 @@ namespace TodoApp.Migrations
                     b.HasOne("TodoApp.TikiProduct", null)
                         .WithMany("TikiProductImages")
                         .HasForeignKey("TikiProductId");
+                });
+
+            modelBuilder.Entity("TodoApp.TikiProductLink", b =>
+                {
+                    b.HasOne("TodoApp.TikiCategory", "TikiCategory")
+                        .WithMany()
+                        .HasForeignKey("TikiCategoryId");
+
+                    b.Navigation("TikiCategory");
                 });
 
             modelBuilder.Entity("TodoApp.TikiReview", b =>
