@@ -17,7 +17,7 @@ namespace TodoApp
 
         }
 
-        public string? Url { get; set; }
+        public string Url { get; set; }
         public bool IsGoTo { get; set; }
         public int Version { get; set; }
         public Guid? TikiCategoryId { get; set; } // Nullable foreign key

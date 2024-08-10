@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TodoApp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace TodoApp.Migrations
 {
     [DbContext(typeof(TodoAppDbContext))]
-    partial class TodoAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240809165045_CreateProxiesTable_2")]
+    partial class CreateProxiesTable_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -171,6 +174,9 @@ namespace TodoApp.Migrations
                     b.Property<string>("Host")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("Ip")
+                        .HasColumnType("int");
+
                     b.Property<string>("LastModificationBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -178,9 +184,6 @@ namespace TodoApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("Latency")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Port")
                         .HasColumnType("int");
 
                     b.Property<int>("ProxyType")
@@ -209,9 +212,6 @@ namespace TodoApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRawUrl")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastModificationBy")

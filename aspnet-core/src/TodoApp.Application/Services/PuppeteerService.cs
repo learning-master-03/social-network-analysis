@@ -445,10 +445,10 @@ namespace TodoApp
             var directory = Path.GetDirectoryName(path);
             if (!Directory.Exists(directory))
             {
-                Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(directory ?? "");
             }
         }
-        private async Task<TikiProductLink?> CheckExistAsync(string url)
+        private async Task<TikiProductLink?> CheckExistAsync(string? url)
         {
             try
             {
@@ -456,7 +456,7 @@ namespace TodoApp
                 {
                     return null;
                 }
-                var result = await _tikiProductLinkRepository.FirstOrDefaultAsync(x => x.Url.Equals(url));
+                var result = await _tikiProductLinkRepository.FirstOrDefaultAsync(x => x != null && x.Url.Equals(url));
                 if (result == null)
                 {
                     return null;
@@ -493,6 +493,23 @@ namespace TodoApp
             {
                 var result = await _tikiProductRepository.FindAsync(x => x.BrandName == input.BrandName &&
                                                                     x.Name == input.Name);
+                if (result == null)
+                {
+                    return null;
+                }
+                return ObjectMapper.Map<TikiProduct, TikiProductDto>(result);
+            }
+            catch (System.Exception)
+            {
+
+                return null;
+            }
+        }
+        private async Task<TikiProductDto?> CheckExistProducByUrltAsync(string input)
+        {
+            try
+            {
+                var result = await _tikiProductRepository.FindAsync(x => x.Url == input);
                 if (result == null)
                 {
                     return null;
@@ -636,6 +653,11 @@ namespace TodoApp
             var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
             try
             {
+                // var isCheckProductExis = await CheckExistProducByUrltAsync(url);
+                // if (isCheckProductExis == null) {
+                //     await uow.RollbackAsync();
+                //     throw new UserFriendlyException("Product existed in System!");
+                // }
                 var reviews = new List<TikiReviewDto>();
                 var products = new List<TikiProductDto>();
                 var configPuppeteer = await _puppeteerConfigurationRepository.FirstAsync();

@@ -18,9 +18,9 @@ namespace TodoApp
         public string? Url { get; set; } = "";
         public bool IsActive { get; set; } = true;
         public DateTime? LastModificationTime { get; set; }
-        public string? LastModificationBy { get; set; }= "system";
+        public string LastModificationBy { get; set; }= "system";
         public DateTime CreationTime { get; set; }
-        public string? CreationBy { get; set; }= "system";
+        public string CreationBy { get; set; }= "system";
         public ICollection<TikiProductLink> tikiProductLinks { get; set; }
     }
 }

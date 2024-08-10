@@ -61,6 +61,8 @@ public class TodoAppDbContext :
     public DbSet<TikiProductImage> TikiProductImages { get; set; }
     public DbSet<TikiReview> TikiReviews { get; set; }
     public DbSet<TikiProductLink> TikiProductLinks { get; set; }
+    public DbSet<ProxyJobs> ProxyJobs { get; set; }
+    public DbSet<Proxies> Proxies { get; set; }
 
 
 
@@ -123,14 +125,26 @@ public class TodoAppDbContext :
         builder.Entity<TikiProduct>(b =>
    {
        b.ToTable("TikiProducts");
-           b.ConfigureByConvention(); //auto configure for the base class props
+       b.ConfigureByConvention(); //auto configure for the base class props
 
 
    });
+        builder.Entity<ProxyJobs>(b =>
+   {
+       b.ToTable("ProxyJobs");
+       b.ConfigureByConvention(); //auto configure for the base class props
 
-        builder.Entity<TikiProductImage>(b =>
+
+   });        builder.Entity<TikiProduct>(b =>
+   {
+       b.ToTable("TikiProducts");
+       b.ConfigureByConvention(); //auto configure for the base class props
+
+
+   });
+        builder.Entity<Proxies>(b =>
 {
-    b.ToTable("TikiProductImages");
+    b.ToTable("Proxies");
     b.ConfigureByConvention(); //auto configure for the base class props
 
 
