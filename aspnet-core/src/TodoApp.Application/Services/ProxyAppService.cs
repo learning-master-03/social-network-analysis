@@ -83,13 +83,13 @@ public class ProxyAppService : ApplicationService, IProxyService
         catch (WebException ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"Error: {ex.Message}");
+            // Console.WriteLine($"Error: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"General Error: {ex.Message}");
+            // Console.WriteLine($"General Error: {ex.Message}");
             return false;
         }
     }
@@ -123,13 +123,13 @@ public class ProxyAppService : ApplicationService, IProxyService
         catch (WebException ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"Error: {ex.Message}");
+            // Console.WriteLine($"Error: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"General Error: {ex.Message}");
+            // Console.WriteLine($"General Error: {ex.Message}");
             return false;
         }
     }
@@ -163,13 +163,13 @@ public class ProxyAppService : ApplicationService, IProxyService
         catch (WebException ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"Error: {ex.Message}");
+            // Console.WriteLine($"Error: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"General Error: {ex.Message}");
+            // Console.WriteLine($"General Error: {ex.Message}");
             return false;
         }
     }
@@ -203,13 +203,13 @@ public class ProxyAppService : ApplicationService, IProxyService
         catch (WebException ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"Error: {ex.Message}");
+            // Console.WriteLine($"Error: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
             // Ghi lại thông tin lỗi nếu cần
-            Console.WriteLine($"General Error: {ex.Message}");
+            // Console.WriteLine($"General Error: {ex.Message}");
             return false;
         }
     }
@@ -236,7 +236,7 @@ public class ProxyAppService : ApplicationService, IProxyService
                 try
                 {
                     await page.GoToAsync(input.Url);
-                    await Task.Delay(1000);
+                    await Task.Delay(new Random().Next(100, 1000));
                     if (!input.IsRawUrl)
                     {
                         await page.WaitForSelectorAsync("a[data-testid='raw-button']");
@@ -254,32 +254,8 @@ public class ProxyAppService : ApplicationService, IProxyService
 
                     var proxies = ExtractProxies(proxyList);
 
-                    // Check proxy existence and create ProxyDto objects
-                    // var proxyTasks = proxies.Select(async p =>
-                    // {
-                    //     var parts = p.Split(":");
-                    //     if (parts.Length == 2)
-                    //     {
-                    //         var host = parts[0];
-                    //         var port = int.Parse(parts[1]);
-
-                    //         // Check if the host exists
-                    //         var isActive = await _proxyRepository.CheckHostExistAsync(host, port);
-                    //         return new ProxyDto
-                    //         {
-                    //             Host = host,
-                    //             Port = port,
-                    //             IsActive = isActive
-                    //         };
-                    //     }
-                    //     return null;
-                    // }).ToList();
-
-                    // var proxyResults = (await Task.WhenAll(proxyTasks)).Where(p => p != null).ToList();
-
-                    // var lstProxies = proxyResults.Where(p => p != null && !p.IsActive).ToList();
                     var lstProxies = proxyList.Select(p => p.Split(":")).
-                                               Select(p => new ProxyDto() { Host = p[0], Port = int.Parse(p[1]) }).ToList();
+                                               Select(p => new ProxyDto() { Host = p[0].Trim(), Port = int.Parse(p[1].Trim()) }).ToList();
 
 
                     if (lstProxies.Count < 0)

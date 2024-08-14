@@ -19,23 +19,23 @@ namespace TodoApp
 {
     public class PuppeteerService : ApplicationService, IPuppeteerService
     {
-        private readonly IRepository<TikiCategory, Guid> _tikiCategoryRepository;
-        private readonly IRepository<PuppeteerConfiguration, Guid> _puppeteerConfigurationRepository;
-        private readonly IRepository<TikiProductLink, Guid> _tikiProductLinkRepository;
-        private readonly IRepository<TikiProduct, Guid> _tikiProductRepository;
+        private readonly ITikiCategoryRepository _tikiCategoryRepository;
+        private readonly IPuppeteerConfigurationRepository _puppeteerConfigurationRepository;
+        private readonly ITikiProductLinkRepository _tikiProductLinkRepository;
+        private readonly ITikiProductRepository _tikiProductRepository;
 
-        private readonly IRepository<TikiReview, Guid> _tikiPreviewRepository;
+        private readonly ITikiReviewRepository _tikiPreviewRepository;
 
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly ILogger<PuppeteerService> _logger;
 
 
 
-        public PuppeteerService(IRepository<TikiCategory, Guid> tikiCategoryRepository,
-                                IRepository<PuppeteerConfiguration, Guid> puppeteerConfigurationRepository,
-                                IRepository<TikiProductLink, Guid> tikiProductLinkRepository,
-                                IRepository<TikiProduct, Guid> tikiProductRepository,
-                                IRepository<TikiReview, Guid> tikiPreviewRepository,
+        public PuppeteerService(ITikiCategoryRepository tikiCategoryRepository,
+                                IPuppeteerConfigurationRepository puppeteerConfigurationRepository,
+                                ITikiProductLinkRepository tikiProductLinkRepository,
+                                ITikiProductRepository tikiProductRepository,
+                                ITikiReviewRepository tikiPreviewRepository,
                                 IUnitOfWorkManager unitOfWorkManager,
                                 ILogger<PuppeteerService> logger
 )
@@ -217,7 +217,7 @@ namespace TodoApp
             try
             {
 
-                var category = await _tikiCategoryRepository.FirstAsync(x => x.IsActive == true && x.Id == categoryId);
+                var category = await _tikiCategoryRepository.FindAsync(x => x.IsActive == true && x.Id == categoryId);
                 var configPuppeteer = await _puppeteerConfigurationRepository.FirstAsync();
                 Logger.LogInformation($"Starting: CrawlProductAsync... {JsonConvert.SerializeObject(category)}");
 
