@@ -19,11 +19,11 @@ namespace Acme.BookStore.Books;
 
 public class ProxyAppService : ApplicationService, IProxyService
 {
-    private readonly IRepository<PuppeteerConfiguration, Guid> _puppeteerConfigurationRepository;
+    private readonly IPuppeteerConfigurationRepository _puppeteerConfigurationRepository;
     private readonly IProxyRepository _proxyRepository;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-    public ProxyAppService(IRepository<PuppeteerConfiguration, Guid> puppeteerConfigurationRepository,
+    public ProxyAppService(IPuppeteerConfigurationRepository puppeteerConfigurationRepository,
                                         IUnitOfWorkManager unitOfWorkManager,
                                         IProxyRepository proxyRepository)
     {
@@ -214,13 +214,13 @@ public class ProxyAppService : ApplicationService, IProxyService
         }
     }
 
-    public async Task<PagedResultDto<ProxyDto>> CrawlProxiesFromUrlAsync(CrawlProxyDto input)
+    public async Task<bool> CrawlProxiesFromUrlAsync(CrawlProxyDto input)
     {
-        var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
+        // var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
         try
         {
             Logger.LogInformation($"Starting: CrawlProxiesFromUrlAsync... {input.Url} - {input.FileType}");
-            var configPuppeteer = await _puppeteerConfigurationRepository.FirstAsync();
+            var configPuppeteer = await _puppeteerConfigurationRepository.GetConfigurationPuppeteerAsync();
 
             //config puppeteer
             await new BrowserFetcher().DownloadAsync();
@@ -236,6 +236,7 @@ public class ProxyAppService : ApplicationService, IProxyService
                 try
                 {
                     await page.GoToAsync(input.Url);
+                    await Task.Delay(1000);
                     if (!input.IsRawUrl)
                     {
                         await page.WaitForSelectorAsync("a[data-testid='raw-button']");
@@ -254,64 +255,70 @@ public class ProxyAppService : ApplicationService, IProxyService
                     var proxies = ExtractProxies(proxyList);
 
                     // Check proxy existence and create ProxyDto objects
-                    var proxyTasks = proxies.Select(async p =>
-                    {
-                        var parts = p.Split(":");
-                        if (parts.Length == 2)
-                        {
-                            var host = parts[0];
-                            var port = int.Parse(parts[1]);
+                    // var proxyTasks = proxies.Select(async p =>
+                    // {
+                    //     var parts = p.Split(":");
+                    //     if (parts.Length == 2)
+                    //     {
+                    //         var host = parts[0];
+                    //         var port = int.Parse(parts[1]);
 
-                            // Check if the host exists
-                            var isActive = await _proxyRepository.CheckHostExistAsync(host, port);
-                            return new ProxyDto
-                            {
-                                Host = host,
-                                Port = port,
-                                IsActive = isActive
-                            };
-                        }
-                        return null;
-                    }).ToList();
+                    //         // Check if the host exists
+                    //         var isActive = await _proxyRepository.CheckHostExistAsync(host, port);
+                    //         return new ProxyDto
+                    //         {
+                    //             Host = host,
+                    //             Port = port,
+                    //             IsActive = isActive
+                    //         };
+                    //     }
+                    //     return null;
+                    // }).ToList();
 
-                    var proxyResults = (await Task.WhenAll(proxyTasks)).Where(p => p != null).ToList();
+                    // var proxyResults = (await Task.WhenAll(proxyTasks)).Where(p => p != null).ToList();
 
-                    var lstProxies = proxyResults.Where(p => p != null && !p.IsActive).ToList();
+                    // var lstProxies = proxyResults.Where(p => p != null && !p.IsActive).ToList();
+                    var lstProxies = proxyList.Select(p => p.Split(":")).
+                                               Select(p => new ProxyDto() { Host = p[0], Port = int.Parse(p[1]) }).ToList();
+
+
                     if (lstProxies.Count < 0)
                     {
-                        throw new Exception("");
+                        Logger.LogInformation($"Hadling [{input.Id}] Crawl Data lstProxies < 0");
+
+                        return false;
                     }
                     var dataInsert = ObjectMapper.Map<List<ProxyDto>, List<Proxies>>(lstProxies);
                     dataInsert.ForEach(proxy => proxy.ProxyType = input.ProxyType);
 
                     if (dataInsert.Count > 0)
                     {
-                        await _proxyRepository.InsertManyAsync(dataInsert, autoSave: true);
+                        await _proxyRepository.InsertBulkAsync(dataInsert);
 
                     }
 
-                    return new PagedResultDto<ProxyDto>(lstProxies.Count, lstProxies);
+                    return true;
 
                 }
-                catch (System.Exception)
+                catch (System.Exception ex)
                 {
-                    await uow.RollbackAsync();
+                    Logger.LogInformation($"Hadling [{input.Id}] Crawl Data Exception {ex.Message}");
 
-                    throw;
+                    return false;
                 }
                 finally
                 {
                     await page.CloseAsync();
                     await browser.CloseAsync();
-                    await uow.CompleteAsync();
                 }
 
             }
         }
-        catch (System.Exception)
+        catch (System.Exception ex)
         {
-            await uow.RollbackAsync();
-            throw;
+            Logger.LogInformation($"Hadling [{input.Id}] Crawl Data Exception {ex.Message}");
+
+            return false;
         }
     }
     private List<string> ExtractProxies(List<string> inputList)

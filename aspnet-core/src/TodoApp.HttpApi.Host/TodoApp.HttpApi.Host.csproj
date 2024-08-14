@@ -11,7 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire.Core" Version="1.8.14" />
+      <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.1" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
+		<PackageReference Include="Volo.Abp.HangFire" Version="8.2.1" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.14" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
@@ -23,6 +25,8 @@
     <PackageReference Include="Volo.Abp.BackgroundWorkers.Hangfire" Version="8.2.1" />
     <PackageReference Include="Volo.Abp.Swashbuckle" Version="8.2.1" />
     <PackageReference Include="Volo.Abp.Account.Web.OpenIddict" Version="8.2.1" />
+    		<PackageReference Include="Hangfire.Console" Version="1.4.1" />
+
   </ItemGroup>
 
   <ItemGroup>

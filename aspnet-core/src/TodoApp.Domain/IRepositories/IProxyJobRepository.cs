@@ -11,8 +11,6 @@ using Volo.Abp.Linq;
 
 namespace Acme.BookStore.Books;
 
-public interface IProxyRepository : IRepository<Proxies, Guid>
+public interface IProxyJobRepository : IRepository<ProxyJobs, Guid>
 {
-   Task<bool> CheckHostExistAsync(string host, int? port);
-   Task InsertBulkAsync(List<Proxies> input);
 }

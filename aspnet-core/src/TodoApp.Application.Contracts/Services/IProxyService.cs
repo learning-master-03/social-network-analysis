@@ -11,6 +11,6 @@ namespace TodoApp
     public interface IProxyService : IApplicationService
     {
         Task<bool> CheckProxyAsync(CheckProxyDto input);
-        Task<PagedResultDto<ProxyDto>> CrawlProxiesFromUrlAsync(CrawlProxyDto input);
+        Task<bool> CrawlProxiesFromUrlAsync(CrawlProxyDto input);
     }
 }

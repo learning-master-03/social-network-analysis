@@ -46,7 +46,7 @@ public class TodoAppApplicationModule : AbpModule
     public override async Task OnApplicationInitializationAsync(
        ApplicationInitializationContext context)
     {
-        await context.AddBackgroundWorkerAsync<MyLogWorker>();
+        // await context.AddBackgroundWorkerAsync<PassiveUserCheckerWorker>();
       
 
     }

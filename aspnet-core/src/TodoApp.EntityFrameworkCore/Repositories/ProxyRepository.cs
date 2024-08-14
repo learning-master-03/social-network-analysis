@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acme.BookStore.Books;
@@ -42,11 +43,11 @@ public class ProxyRepository
                 Logger.LogError("DbContext is null.");
                 return false;
             }
-            var exists = await dbContext.Proxies.AnyAsync(x => x.Port == port && x.Host == host);
+            var exists = await dbContext.Proxies.CountAsync(x => x.Port == port && x.Host == host);
 
             await uow.CompleteAsync();
 
-            return exists == true ? true : false;
+            return exists > 0 ? true : false;
         }
         catch (System.Exception ex)
         {
@@ -55,7 +56,31 @@ public class ProxyRepository
 
             return true;
         }
-        
+
+    }
+
+    public async Task InsertBulkAsync(List<Proxies> input)
+    {
+        var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
+        try
+        {
+            var dbContext = await GetDbContextAsync();
+            foreach (var item in input)
+            {
+                var isExist = await dbContext.Proxies.AnyAsync(x => x.Port == item.Port && x.Host == item.Host && x.ProxyType == item.ProxyType);
+                if (!isExist)
+                {
+                    await dbContext.Proxies.AddRangeAsync(item);
+                }
+            }
+
+            await uow.CompleteAsync();
+            await Task.CompletedTask;
+        }
+        catch (System.Exception)
+        {
+            await uow.RollbackAsync();
+        }
     }
 }
 

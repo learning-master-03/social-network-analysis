@@ -5,6 +5,7 @@ namespace Acme.BookStore.Books;
 
 public class CrawlProxyDto
 {
+    public Guid? Id { get; set; }
     public string? Url { get; set; }
     public bool IsRawUrl { get; set; }
 

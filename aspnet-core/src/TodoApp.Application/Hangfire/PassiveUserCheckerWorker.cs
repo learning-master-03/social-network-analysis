@@ -4,7 +4,10 @@
 // using Volo.Abp.BackgroundWorkers;
 // using Volo.Abp.Threading;
 // using Volo.Abp.Users;
-
+    // [BackgroundWorkerName("NewWorkerName")] // Thay đổi tên worker
+    // [BackgroundJobName("NewWorkerJobName")] // Tên job mới nếu cần
+    // [Display(Name = "NewWorkerName")]
+    // [DisplayName("Send order #{0} to warehouse")]
 // public class PassiveUserCheckerWorker : AsyncPeriodicBackgroundWorkerBase
 // {
 //     public PassiveUserCheckerWorker(

@@ -35,6 +35,13 @@ using Volo.Abp.BackgroundWorkers.Hangfire;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundWorkers;
 using Acme.BookStore.Books;
+using Hangfire.RecurringJobExtensions;
+using Volo.Abp.Hangfire;
+using Hangfire.Console;
+using Hangfire.Dashboard;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace TodoApp;
 
@@ -47,7 +54,9 @@ namespace TodoApp;
     typeof(AbpAspNetCoreMvcUiLeptonXLiteThemeModule),
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpAspNetCoreSerilogModule),
-    typeof(AbpSwashbuckleModule)
+    typeof(AbpSwashbuckleModule),
+    typeof(AbpHangfireModule)
+
 )]
 // [DependsOn(typeof(AbpBackgroundJobsHangfireModule))]
 // [DependsOn(typeof(AbpBackgroundWorkersHangfireModule))]
@@ -87,9 +96,9 @@ public class TodoAppHttpApiHostModule : AbpModule
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
         ConfigureSwaggerServices(context, configuration);
-
+        ConfigureHealthChecks(context, configuration);
         //hangfire
-        // ConfigureHangfire(context, configuration);
+        ConfigureHangfire(context, configuration);
 
     }
 
@@ -242,26 +251,52 @@ public class TodoAppHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
         app.UseHttpsRedirection();
-        // app.UseAbpHangfireDashboard(); //should add to the request pipeline before the app.UseConfiguredEndpoints()
-
+        app.UseHealthChecks("/health", new HealthCheckOptions()
+        {
+            Predicate = _ => true,
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            Authorization = new[] { new HangFireAuthorizationFilter() },
+            IgnoreAntiforgeryToken = true
+        });
 
     }
     private void ConfigureHangfire(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        // context.Services.AddHangfire(config =>
-        // {
-        //     config.UseSqlServerStorage(configuration.GetConnectionString("Default"));
-        
-        // });
+        context.Services.AddHangfire(config =>
+        {
+            config.UseSqlServerStorage(configuration.GetConnectionString("Default"));
+            config.UseRecurringJob(typeof(HandlerJobService));
+            config.UseConsole();
+        });
 
-    
+
 
     }
-    
-    public void DeleteOldLogWorkerJob()
+    private void ConfigureHealthChecks(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        // Xóa job cũ bằng tên cũ
-        RecurringJob.RemoveIfExists("HangfirePeriodicBackgroundWorkerAdapter<MyLogWorker>.DoWorkAsync");
+        //add more health check at here 
+        context.Services.AddHealthChecks()
+                 .AddSqlServer(
+                    connectionString: configuration["ConnectionStrings:Default"],
+                    name: "database",
+                    failureStatus: HealthStatus.Degraded,
+                    tags: new string[] { "db", "sql", "sqlserver" }
+                );
+        //.AddRedis(
+        //    redisConnectionString: configuration["Redis:Configuration"],
+        //    name: "redis",
+        //    failureStatus: HealthStatus.Degraded,
+        //    tags: new string[] { "db", "redis" }
+        //);
     }
-   
+    public class HangFireAuthorizationFilter : IDashboardAuthorizationFilter
+    {
+        public bool Authorize(DashboardContext context)
+        {
+            return true;
+        }
+    }
 }

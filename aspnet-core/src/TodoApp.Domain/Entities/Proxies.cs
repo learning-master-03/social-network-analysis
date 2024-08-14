@@ -16,6 +16,9 @@ namespace TodoApp
         }
         public string? Host { get; set; }
         public int? Port { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsCanUsed { get; set; }
+
         public string? Country { get; set; }
         public ProxyType ProxyType { get; set; }
         public int? Latency { get; set; }
