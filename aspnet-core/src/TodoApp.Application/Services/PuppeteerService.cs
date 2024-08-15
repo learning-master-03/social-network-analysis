@@ -1,18 +1,17 @@
+using Acme.BookStore.Books;
+using CsvHelper;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using PuppeteerSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acme.BookStore.Books;
-using CsvHelper;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using PuppeteerSharp;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Json.SystemTextJson.JsonConverters;
 using Volo.Abp.Uow;
 
 namespace TodoApp
@@ -174,7 +173,8 @@ namespace TodoApp
                                 }
                                 catch (System.Exception)
                                 {
-
+                                    await page.CloseAsync();
+                                    await browser.CloseAsync();
                                     break;
                                 }
 
@@ -239,17 +239,19 @@ namespace TodoApp
                         var listProductLinkUpdate = new List<TikiProductLink>();
 
                         await page.GoToAsync(category.Url);
-                        await Task.Delay(millisecondsDelay: 3000);
+                        await Task.Delay(new Random().Next(1000, 1500));
                         while (true)
                         {
                             try
                             {
                                 await page.ClickAsync(".styles__Button-sc-143954l-1");
-                                await Task.Delay(millisecondsDelay: 3000);
+                                await Task.Delay(new Random().Next(1000, 1500));
                                 break;
                             }
                             catch
                             {
+                                await page.CloseAsync();
+                                await browser.CloseAsync();
                                 break; // Không tìm thấy nút tiếp theo
                             }
                         }
@@ -287,6 +289,8 @@ namespace TodoApp
                     catch (Exception ex)
                     {
                         _logger.LogInformation($"Exception CrawlProductLinkAsync: {ex.Message}");
+                        await uow.RollbackAsync();
+
                     }
                     finally
                     {
@@ -303,7 +307,6 @@ namespace TodoApp
                 _logger.LogInformation($"Exception CrawlProductLinkAsync: {ex.Message}");
 
                 await uow.RollbackAsync();
-                throw;
             }
         }
 
@@ -610,7 +613,8 @@ namespace TodoApp
                         }
                         catch (System.Exception)
                         {
-
+                            await page.CloseAsync();
+                            await browser.CloseAsync();
                             break;
                         }
 
@@ -644,7 +648,6 @@ namespace TodoApp
             catch (System.Exception)
             {
                 await uow.RollbackAsync();
-                throw;
             }
         }
 
@@ -709,8 +712,7 @@ namespace TodoApp
                     {
                         try
                         {
-                            // await Task.Delay(millisecondsDelay: 3000);
-                            // deal with infinite scrolling
+                            await Task.Delay(RandomDelay(1000, 1500));                            // deal with infinite scrolling
                             var jsScrollScript = @"
                     const scrolls = 1
                     let scrollCount = 0
@@ -779,18 +781,20 @@ namespace TodoApp
                             reviews.AddRange(reviewsOnPage);
 
                             // Check if there's a "next" button and click it
-                            // hasNextPage = await page.EvaluateExpressionAsync<bool>("document.querySelector('.customer-reviews__pagination .btn.next') !== null");
-                            hasNextPage = false;
+                            hasNextPage = await page.EvaluateExpressionAsync<bool>("document.querySelector('.customer-reviews__pagination .btn.next') !== null");
+                            //hasNextPage = false;
                             if (hasNextPage)
                             {
                                 await page.ClickAsync(".customer-reviews__pagination .btn.next");
-                                await Task.Delay(RandomDelay(1000, 2000)); // Thêm khoảng thời gian trễ ngẫu nhiên
+                                await Task.Delay(RandomDelay(1000, 1500)); // Thêm khoảng thời gian trễ ngẫu nhiên
                             }
 
                         }
-                        catch (System.Exception)
+                        catch (System.Exception ex)
                         {
-
+                            _logger.LogInformation($"Exception CrawlProductLinkAsync: {ex.Message}");
+                            await page.CloseAsync();
+                            await browser.CloseAsync();
                             break;
                         }
 
@@ -814,7 +818,7 @@ namespace TodoApp
 
                     dataInsert.CreationBy = "system";
                     dataInsert.CreationTime = DateTime.UtcNow;
-                    // await _tikiProductRepository.InsertAsync(dataInsert, true);
+                    await _tikiProductRepository.InsertAsync(dataInsert, true);
 
 
 
@@ -832,7 +836,6 @@ namespace TodoApp
 
                 await uow.RollbackAsync();
 
-                throw;
             }
         }
     }

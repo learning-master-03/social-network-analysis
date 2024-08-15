@@ -1,23 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Hangfire.Console;
 using Hangfire.RecurringJobExtensions;
 using Hangfire.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using TodoApp;
 using Volo.Abp.Application.Services;
-using Volo.Abp.BackgroundJobs;
-using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Threading;
 using Volo.Abp.Uow;
 
 namespace Acme.BookStore.Books
@@ -30,12 +22,12 @@ namespace Acme.BookStore.Books
 
         private readonly ILogger<HandlerJobService> _logger;
         private readonly IProxyJobRepository _repository;
-                private readonly ITikiCategoryRepository _tikiCategoriesRepository;
+        private readonly ITikiCategoryRepository _tikiCategoriesRepository;
         private readonly IProxyRepository _proxyRepository;
-
+        private readonly ITikiProductLinkRepository _productLinkRepository;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly ProxyAppService _proxyService;
-                private readonly PuppeteerService _puppeteerService;
+        private readonly PuppeteerService _puppeteerService;
 
 
         public HandlerJobService(ILogger<HandlerJobService> logger,
@@ -44,15 +36,17 @@ namespace Acme.BookStore.Books
         ProxyAppService proxyService,
         IProxyRepository proxyRepository,
         ITikiCategoryRepository tikiCategoriesRepository,
-        PuppeteerService puppeteerService)
+        PuppeteerService puppeteerService,
+        ITikiProductLinkRepository productLinkRepository)
         {
             _logger = logger;
             _repository = repository;
             _unitOfWorkManager = unitOfWorkManager;
             _proxyService = proxyService;
             _proxyRepository = proxyRepository;
-_tikiCategoriesRepository = tikiCategoriesRepository;
-_puppeteerService = puppeteerService;
+            _tikiCategoriesRepository = tikiCategoriesRepository;
+            _puppeteerService = puppeteerService;
+            _productLinkRepository = productLinkRepository;
         }
         [RecurringJob("JobPullIPAsync", Cron = "*/15 * * * *", TimeZone = "Asia/Bangkok", RecurringJobId = "Job Auto Pull Data IP From Github")]
         public async Task JobPullIPAsync(PerformContext context)
@@ -261,13 +255,15 @@ _puppeteerService = puppeteerService;
             }
         }
         [RecurringJob("JobPullProductLinksOfTiki", Cron = "* */23 * * *", TimeZone = "Asia/Bangkok", RecurringJobId = "Job Pull Product Link From Tiki")]
-          public async Task JobPullProductLinksFromTikisync(PerformContext context){
+        public async Task JobPullProductLinksFromTikisync(PerformContext context)
+        {
             try
             {
                 var categories = await _tikiCategoriesRepository.GetListAsync();
                 var bar = context.WriteProgressBar();
-                foreach (var category in categories.WithProgress(bar)){
-                    await _puppeteerService.CrawlProductByUrlAsync(category.Url);
+                foreach (var category in categories.WithProgress(bar))
+                {
+                    await _puppeteerService.CrawlProductLinkAsync(category.Id);
                 }
                 var endTime = DateTime.UtcNow;
                 var duration = endTime - startTime;
@@ -278,11 +274,79 @@ _puppeteerService = puppeteerService;
             }
             catch (System.Exception ex)
             {
-                                context.WriteLine($"Finish Handling JobPullProductLinksFromTikisync Exception: {ex.Message}");
+                context.WriteLine($"Finish Handling JobPullProductLinksFromTikisync Exception: {ex.Message}");
 
                 await Task.CompletedTask;
             }
-          }
+        }
+        [RecurringJob("JobPullProductOfTiki", Cron = "0 0 * * *", TimeZone = "Asia/Bangkok", RecurringJobId = "Job Pull Product From Tiki")]
+        public async Task JobPullProductFromTikisync(PerformContext context)
+        {
+            try
+            {
+                var products = await _productLinkRepository.GetListAsync();
+                var bar = context.WriteProgressBar();
+                // Lấy thông tin về Thread Pool
+                ThreadPool.GetMaxThreads(out int maxWorkerThreads, out _);
+
+                // Tính toán 70% sức mạnh server
+                //int maxDegreeOfParallelism = (int)(maxWorkerThreads * 0.1); // Lấy 70% maxWorkerThreads
+
+                // Ghi lại thời gian bắt đầu
+                int totalCount = products.Count;
+                int completedCount = 0; // Biến theo dõi số lượng tác vụ đã hoàn thành
+
+                var tasks = new List<Task>();
+                var semaphore = new SemaphoreSlim(5, 10);
+                // var semaphore = new SemaphoreSlim(3, 10);
+
+                var lockObject = new object(); // Đối tượng khóa để đồng bộ hóa
+
+                foreach (var product in products.WithProgress(bar))
+                {
+                    await semaphore.WaitAsync();
+                    tasks.Add(Task.Run(async () =>
+                    {
+
+                        try
+                        {
+                            int currentItem; // Biến tạm thời để lưu index
+
+                            // Để có được chỉ số hoàn thành mà không bị xung đột
+                            lock (lockObject)
+                            {
+                                currentItem = completedCount + 1; // Tính toán chỉ số cho log
+                            }
+                            await _puppeteerService.CrawlProductByUrlAsync(product.Url);
+
+                        }
+                        finally
+                        {
+                            // Giải phóng semaphore để cho phép tác vụ khác chạy
+                            semaphore.Release();
+
+                            // Cập nhật số lượng tác vụ đã hoàn thành
+                            lock (lockObject) // Đảm bảo cập nhật số lượng an toàn khi đa luồng
+                            {
+                                completedCount++;
+                            }
+                        }
+                    }));
+                }
+                var endTime = DateTime.UtcNow;
+                var duration = endTime - startTime;
+
+                // In ra thời gian hoàn thành công việc
+                context.WriteLine($"Job completed in {duration.TotalMinutes} minutes. Total completed: {completedCount}/{totalCount}");
+                // Đợi tất cả các tác vụ hoàn thành
+            }
+            catch (System.Exception ex)
+            {
+                context.WriteLine($"Finish Handling JobPullProductFromTikisync Exception: {ex.Message}");
+
+                await Task.CompletedTask;
+            }
+        }
 
     }
 }
