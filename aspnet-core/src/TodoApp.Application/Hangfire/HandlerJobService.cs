@@ -30,22 +30,29 @@ namespace Acme.BookStore.Books
 
         private readonly ILogger<HandlerJobService> _logger;
         private readonly IProxyJobRepository _repository;
+                private readonly ITikiCategoryRepository _tikiCategoriesRepository;
         private readonly IProxyRepository _proxyRepository;
 
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly ProxyAppService _proxyService;
+                private readonly PuppeteerService _puppeteerService;
+
 
         public HandlerJobService(ILogger<HandlerJobService> logger,
         IProxyJobRepository repository,
         IUnitOfWorkManager unitOfWorkManager,
         ProxyAppService proxyService,
-        IProxyRepository proxyRepository)
+        IProxyRepository proxyRepository,
+        ITikiCategoryRepository tikiCategoriesRepository,
+        PuppeteerService puppeteerService)
         {
             _logger = logger;
             _repository = repository;
             _unitOfWorkManager = unitOfWorkManager;
             _proxyService = proxyService;
             _proxyRepository = proxyRepository;
+_tikiCategoriesRepository = tikiCategoriesRepository;
+_puppeteerService = puppeteerService;
         }
         [RecurringJob("JobPullIPAsync", Cron = "*/15 * * * *", TimeZone = "Asia/Bangkok", RecurringJobId = "Job Auto Pull Data IP From Github")]
         public async Task JobPullIPAsync(PerformContext context)
@@ -253,6 +260,29 @@ namespace Acme.BookStore.Books
                 await Task.CompletedTask;
             }
         }
+        [RecurringJob("JobPullProductLinksOfTiki", Cron = "* */23 * * *", TimeZone = "Asia/Bangkok", RecurringJobId = "Job Pull Product Link From Tiki")]
+          public async Task JobPullProductLinksFromTikisync(PerformContext context){
+            try
+            {
+                var categories = await _tikiCategoriesRepository.GetListAsync();
+                var bar = context.WriteProgressBar();
+                foreach (var category in categories.WithProgress(bar)){
+                    await _puppeteerService.CrawlProductByUrlAsync(category.Url);
+                }
+                var endTime = DateTime.UtcNow;
+                var duration = endTime - startTime;
+
+                // In ra thời gian hoàn thành công việc
+                context.WriteLine($"Job completed in {duration.TotalMinutes} minutes.");
+                // Đợi tất cả các tác vụ hoàn thành
+            }
+            catch (System.Exception ex)
+            {
+                                context.WriteLine($"Finish Handling JobPullProductLinksFromTikisync Exception: {ex.Message}");
+
+                await Task.CompletedTask;
+            }
+          }
 
     }
 }

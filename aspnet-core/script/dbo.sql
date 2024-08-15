@@ -1,4 +1,4 @@
--- Active: 1722439822879@@192.168.1.10@1433@TodoApp@dbo
+-- Active: 1723651187715@@192.168.1.10@1433@TodoApp
 
 SELECT 
 "Host","Port",Count("Host")
@@ -19,3 +19,8 @@ SELECT *
 FROM "Proxies"
 )AS T
 WHERE DupRank > 1 
+
+
+SELECT Count(Url) from "TikiProductLinks"
+--GROUP BY Url
+--Having COUNT(Url) > 1 
